@@ -1,13 +1,12 @@
 FROM alpine:latest
 
-# نصب ابزارهای مورد نیاز و خود Tailscale از مخزن رسمی
-RUN apk add --no-cache curl iptables iproute2 tailscale
+RUN apk add --no-cache curl iptables iproute2
 
-# ایجاد پوشه وضعیت
-RUN mkdir -p /var/lib/tailscale /data
+# نصب tailscale
+RUN curl -fsSL https://tailscale.com/install.sh | sh
 
-# کپی اسکریپت ورودی
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# ساخت اسکریپت اجرا
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/start.sh"]
