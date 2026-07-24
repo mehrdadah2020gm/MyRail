@@ -1,15 +1,16 @@
 #!/bin/sh
 
 # اجرای tailscaled
-tailscaled &
+tailscaled --state=/tmp/tailscaled.state &
 
 sleep 5
 
-# اتصال به اکانتت
+# اتصال
 tailscale up \
   --authkey=${TS_AUTHKEY} \
   --advertise-exit-node \
-  --accept-dns=false
+  --accept-dns=false \
+  --reset
 
-# نگه داشتن کانتینر
+# زنده نگه داشتن
 tail -f /dev/null
