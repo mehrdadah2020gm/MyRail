@@ -11,11 +11,16 @@ sysctl -p
 tailscaled --tun=userspace-networking --state=/var/lib/tailscale/tailscaled.state &
 sleep 5
 
-# احراز هویت و معرفی به‌عنوان Exit Node
+# احراز هویت با گزینه‌های پایدارتر
 if [ -n "$TAILSCALE_AUTHKEY" ]; then
     echo "🔑 Authenticating with Tailscale..."
-    if tailscale up --authkey="$TAILSCALE_AUTHKEY" --hostname="railway-app" --advertise-exit-node; then
-        echo "✅ Tailscale connected and advertised as exit node!"
+    if tailscale up \
+        --authkey="$TAILSCALE_AUTHKEY" \
+        --hostname="railway-app" \
+        --advertise-exit-node \
+        --exit-node-allow-lan-access \
+        --reset; then
+        echo "✅ Tailscale connected successfully!"
         tailscale ip
     else
         echo "❌ Authentication failed. Exiting..."
@@ -27,4 +32,12 @@ else
 fi
 
 echo "📡 Tailscale is running. Keeping container alive..."
-tail -f /dev/null
+
+# چک کردن سلامت اتصال هر 30 ثانیه
+while true; do
+    if ! tailscale status | grep -q "online"; then
+        echo "⚠️ Connection lost! Restarting..."
+        exit 1
+    fi
+    sleep 30
+done
