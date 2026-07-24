@@ -3,16 +3,24 @@ set -e
 
 echo "🚀 Starting Tailscale on Railway..."
 
-# اجرای دیمون Tailscale در حالت Userspace Networking
+# فعال‌سازی IP Forwarding
+echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.conf
+sysctl -p
+
+# اجرای دیمون
 tailscaled --tun=userspace-networking --state=/var/lib/tailscale/tailscaled.state &
 sleep 5
 
-# احراز هویت
+# احراز هویت و معرفی به‌عنوان Exit Node
 if [ -n "$TAILSCALE_AUTHKEY" ]; then
     echo "🔑 Authenticating with Tailscale..."
-    tailscale up --authkey="$TAILSCALE_AUTHKEY" --hostname="${TAILSCALE_HOSTNAME:-railway-app}"
-    echo "✅ Tailscale connected successfully!"
-    tailscale ip
+    if tailscale up --authkey="$TAILSCALE_AUTHKEY" --hostname="railway-app" --advertise-exit-node; then
+        echo "✅ Tailscale connected and advertised as exit node!"
+        tailscale ip
+    else
+        echo "❌ Authentication failed. Exiting..."
+        exit 1
+    fi
 else
     echo "❌ ERROR: TAILSCALE_AUTHKEY environment variable not set."
     exit 1
