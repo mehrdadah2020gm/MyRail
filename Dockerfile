@@ -1,22 +1,22 @@
-FROM ubuntu:22.04
+FROM python:3.11-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
 
-# نصب ابزارهای مورد نیاز
+# نصب پیش‌نیازهای سیستم و گیت
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
     curl \
-    ca-certificates \
-    tzdata \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# دریافت آخرین Binary رسمی PasarGuard مستقیماً از گیت‌هاب پروژه
-RUN curl -sL https://github.com/PasarGuard/PasarGuard/releases/latest/download/pasarguard-linux-amd64.tar.gz -o /tmp/pasarguard.tar.gz \
-    && mkdir -p /usr/local/pasarguard \
-    && tar -zxvf /tmp/pasarguard.tar.gz -C /usr/local/pasarguard \
-    && rm /tmp/pasarguard.tar.gz \
-    && chmod +x /usr/local/pasarguard/pasarguard
+# کلون کردن مستقیم سورس پاسارگارد از گیت‌هاب رسمی
+WORKDIR /app
+RUN git clone https://github.com/PasarGuard/scripts.git .
 
-WORKDIR /usr/local/pasarguard
+# نصب وابستگی‌های پایتون پروژه (اگر requirements وجود داره)
+RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
+RUN pip install --no-cache-dir uvicorn fastapi gunicorn
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
