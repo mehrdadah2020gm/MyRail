@@ -1,11 +1,23 @@
-FROM alpine:latest
+FROM ubuntu:22.04
 
-RUN apk add --no-cache \
-    tailscale \
-    iptables \
-    iproute2
+# جلوگیری از پرسش‌های تعاملی هنگام نصب پکیج‌ها
+ENV DEBIAN_FRONTEND=noninteractive
 
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# نصب پیش‌نیازهای ضروری
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    sudo \
+    systemctl \
+    ca-certificates \
+    net-tools \
+    &> /dev/null && \
+    rm -rf /var/lib/apt/lists/*
 
-CMD ["/start.sh"]
+# کپی کردن اسکریپت استارت
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# اجرای اسکریپت اصلی
+ENTRYPOINT ["/entrypoint.sh"]
