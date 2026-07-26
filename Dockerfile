@@ -1,8 +1,9 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TERM=xterm-256color
 
-# نصب ابزارهای پایه و ضروری برای اجرای pasarguard.sh
+# نصب پیش‌نیازها
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
@@ -17,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# کلون کردن سورس دقیق پروژه
+# کلون پروژه
 RUN git clone https://github.com/PasarGuard/scripts.git . && \
     chmod +x pasarguard.sh
 
