@@ -1,12 +1,20 @@
 #!/bin/bash
 
-# دریافت پورت اختصاص‌یافته توسط Railway
+# دریافت پورت از Railway (دیفالت 2053)
 PORT=${PORT:-2053}
 
-echo "=== Starting PasarGuard Core on Port $PORT ==="
+echo "=== Starting PasarGuard Web Service on Port $PORT ==="
 
-# تنظیم پورت پنل روی پورت Railway
-/usr/local/pasarguard/pasarguard port $PORT
-
-# اجرای مستقیم پنل
-exec /usr/local/pasarguard/pasarguard run
+# پیدا کردن فایل اصلی اجرای FastAPI/Python داخل سورس
+if [ -f "main.py" ]; then
+    exec uvicorn main:app --host 0.0.0.0 --port $PORT
+elif [ -f "app/main.py" ]; then
+    exec uvicorn app.main:app --host 0.0.0.0 --port $PORT
+elif [ -f "pasarguard.py" ]; then
+    exec python3 pasarguard.py --port $PORT
+else
+    echo "Files in repository:"
+    ls -la
+    echo "Could not find main entry point automatically."
+    exit 1
+fi
