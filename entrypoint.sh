@@ -2,14 +2,15 @@
 
 PORT=${PORT:-2053}
 
-echo "=== Starting PasarGuard Script on Port $PORT ==="
+echo "=== Running PasarGuard Installation/Startup ==="
 
-# اجرای مستقیم اسکریپت اصلی پاسارگارد با ورودی‌های لازم
-# اگر اسکریپت دستور run یا start داره ازش استفاده می‌کنیم
-if [ -f "./pasarguard.sh" ]; then
-    ./pasarguard.sh @ port $PORT || true
-    exec ./pasarguard.sh @ run
+# ابتدا اسکریپت نصب خود پاسارگارد اجرا می‌شود
+./pasarguard.sh install --port $PORT || true
+
+# سپس دستور up یا run برای زنده نگه‌داشتن سرویس صدا زده می‌شود
+if ./pasarguard.sh up; then
+    echo "=== Service started with 'up' ==="
 else
-    echo "pasarguard.sh not found!"
-    exit 1
+    echo "=== Fallback to running pasarguard directly ==="
+    ./pasarguard.sh run || tail -f /dev/null
 fi
