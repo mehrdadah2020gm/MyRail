@@ -2,15 +2,20 @@
 
 PORT=${PORT:-2053}
 
-echo "=== Running PasarGuard Installation/Startup ==="
+echo "=== Searching for PasarGuard Application Executables ==="
 
-# ابتدا اسکریپت نصب خود پاسارگارد اجرا می‌شود
-./pasarguard.sh install --port $PORT || true
+# جستجو برای یافتن فایل اجرایی اصلی پروژه
+PASAR_BIN=$(find /app -name "pasarguard" -type f -o -name "PasarGuard" -type f | head -n 1)
 
-# سپس دستور up یا run برای زنده نگه‌داشتن سرویس صدا زده می‌شود
-if ./pasarguard.sh up; then
-    echo "=== Service started with 'up' ==="
+if [ -n "$PASAR_BIN" ]; then
+    echo "Found executable at: $PASAR_BIN"
+    chmod +x "$PASAR_BIN"
+    # تنظیم پورت و اجرای سرویس
+    "$PASAR_BIN" port $PORT || true
+    exec "$PASAR_BIN" run
 else
-    echo "=== Fallback to running pasarguard directly ==="
-    ./pasarguard.sh run || tail -f /dev/null
+    echo "Executable not found directly, checking repository structure:"
+    ls -R /app
+    # زنده نگه داشتن کانتینر برای بررسی لاگ‌های پوشه
+    tail -f /dev/null
 fi
